@@ -1,2 +1,6 @@
 # SpySat
-Capstone project- A website that models active satellites and information about them
+## Capstone project
+A website that uses live satellite tracking to
+- model orbits
+- offer information in a readable manner
+- teach others about satellite information
