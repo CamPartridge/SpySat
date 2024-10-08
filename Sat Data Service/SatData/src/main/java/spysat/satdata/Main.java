@@ -6,12 +6,28 @@ import java.net.CookieHandler;
 import java.net.CookieManager;
 import java.net.CookiePolicy;
 import java.net.URL;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import javax.net.ssl.HttpsURLConnection;
+import java.util.*;
 
+import com.mongodb.client.model.BulkWriteOptions;
+import com.mongodb.client.model.UpdateOneModel;
+import com.mongodb.client.model.UpdateOptions;
+import com.mongodb.client.model.WriteModel;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+
+import static com.mongodb.client.model.Filters.eq;
+import org.bson.Document;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 
 
 public class Main {
@@ -19,17 +35,76 @@ public class Main {
         JSONArray satData = getSatelliteData();
         calculateOrbits(satData);
         cleanUpSatData(satData);
-        System.out.println(satData);
+
+        addAllDataToMongo(satData);
+        deleteOldDocuments();
     }
 
+    public static void addAllDataToMongo(JSONArray satData){
+        String uri = "mongodb+srv://cambry:SpySatmongo@spysat.f3iwa.mongodb.net/?retryWrites=true&w=majority&appName=SpySat";
+
+        try (MongoClient mongoClient = MongoClients.create(uri)) {
+            MongoDatabase database = mongoClient.getDatabase("SpySat");
+            MongoCollection<Document> collection = database.getCollection("satellites");
+
+//            List<Document> documents = new ArrayList<>();
+            List<WriteModel<Document>> bulkOperations = new ArrayList<>();
+
+            for (int i = 0; i < Objects.requireNonNull(satData).size(); i++) {
+                JSONObject satellite = (JSONObject) satData.get(i);
+                Integer noradCatId = Integer.parseInt(satellite.get("NORAD_CAT_ID").toString());
+                Document filter = new Document("NORAD_CAT_ID", noradCatId);
+//                System.out.println(satData.get(i).toString());
+                Document updates = Document.parse(satData.get(i).toString());
+                Document updateOperation = new Document("$set", updates);
+
+
+                bulkOperations.add(new UpdateOneModel<>(filter, updateOperation, new UpdateOptions().upsert(true)));
+                if (bulkOperations.size() == 2000) {
+                    collection.bulkWrite(bulkOperations, new BulkWriteOptions().ordered(false));
+                }
+            }
+            if (!bulkOperations.isEmpty()) {
+                collection.bulkWrite(bulkOperations, new BulkWriteOptions().ordered(false));
+            }
+
+            mongoClient.close();
+
+            System.out.println("Mongo updated successfully!");
+        } catch (Exception e){
+            System.out.println("Something went wrong when updating database");
+            e.printStackTrace();
+        }
+    }
+
+    public static void deleteOldDocuments() {
+        String uri = "mongodb+srv://cambry:SpySatmongo@spysat.f3iwa.mongodb.net/?retryWrites=true&w=majority&appName=SpySat";
+        try (MongoClient mongoClient = MongoClients.create(uri)) {
+            MongoDatabase database = mongoClient.getDatabase("SpySat");
+            MongoCollection<Document> collection = database.getCollection("satellites");
+
+            Date currentDate = new Date();
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+
+            Document filter = new Document("DECAY_DATE", new Document("$lt", sdf.format(currentDate)));
+
+            collection.deleteMany(filter);
+
+            System.out.println("Old documents deleted successfully!");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
     public static JSONArray getSatelliteData(){
         try {
             String baseURL = "https://www.space-track.org";
             String authPath = "/ajaxauth/login";
             String userName = "cpartridge@student.neumont.edu";
             String password = "SpySat!bookwyrmbam";
-//            String query = "/basicspacedata/query/class/gp/decay_date/null-val/epoch/%3Enow-30/orderby/norad_cat_id/format/json";
-            String query = "/basicspacedata/query/class/gp/decay_date/null-val/epoch/%3Enow-30/country_code/BOL/orderby/object_name/format/json";
+            String query = "/basicspacedata/query/class/gp/epoch/%3Enow-10/orderby/norad_cat_id/format/json";
+//            String query = "/basicspacedata/query/class/gp/decay_date/null-val/epoch/%3Enow-30/country_code/BOL/orderby/object_name/format/json";
 
             CookieManager manager = new CookieManager();
             manager.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
@@ -72,7 +147,7 @@ public class Main {
 
             JSONParser parser = new JSONParser();
             JSONArray satData = (JSONArray) parser.parse(builder.toString());
-
+            System.out.println(satData.size());
             return satData;
 
         } catch (Exception e) {
@@ -109,9 +184,13 @@ public class Main {
         }
     }
 
-    public static void cleanUpSatData(JSONArray satData){
+    public static void cleanUpSatData(JSONArray satData) {
         for (int i = 0; i < Objects.requireNonNull(satData).size(); i++) {
             JSONObject jsonObject = (JSONObject) satData.get(i);
+            jsonObject.put("NORAD_CAT_ID", Integer.valueOf(jsonObject.get("NORAD_CAT_ID").toString()));
+            jsonObject.put("REV_AT_EPOCH", Integer.valueOf(jsonObject.get("REV_AT_EPOCH").toString()));
+            jsonObject.put("DECAY_DATE", jsonObject.get("DECAY_DATE") == null ? null: jsonObject.get("DECAY_DATE").toString());
+
 
             // Remove the key from the object
             jsonObject.remove("CCSDS_OMM_VERS");
@@ -137,9 +216,10 @@ public class Main {
             jsonObject.remove("PERIOD");
             jsonObject.remove("APOAPSIS");
             jsonObject.remove("PERIAPSIS");
-            jsonObject.remove("DECAY_DATE");
             jsonObject.remove("FILE");
             jsonObject.remove("GP_ID");
-        }
+
     }
+
+}
 }
