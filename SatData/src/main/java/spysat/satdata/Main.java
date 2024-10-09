@@ -110,29 +110,24 @@ public class Main {
     public static void addDescriptions() {
         String uri = "mongodb+srv://cambry:SpySatmongo@spysat.f3iwa.mongodb.net/?retryWrites=true&w=majority&appName=SpySat";
 
-        // Create MongoClient with the settings
         try (MongoClient mongoClient = MongoClients.create(uri)) {
             MongoDatabase database = mongoClient.getDatabase("SpySat");
             MongoCollection<Document> collection = database.getCollection("satellites");
 
 
-            // Find all documents in the collection
             MongoCursor<Document> cursor = collection.find(or(eq("DESCRIPTION", ""), exists("DESCRIPTION", false))).iterator();
 
 
-            // Iterate through the documents
             while (cursor.hasNext()) {
                 Document satelliteDoc = cursor.next();
 
-                // Get the object type and object ID from the document
                 String objectType = satelliteDoc.getString("OBJECT_TYPE");
                 String objectId = satelliteDoc.getString("OBJECT_ID");
 
                 String description = "";
 
-                // Check the object type and assign a description accordingly
                 if ("Payload".equalsIgnoreCase(objectType)) {
-                    description = scrapeSatelliteDescription(objectId); // Scrape description for payloads
+                    description = scrapeSatelliteDescription(objectId);
                 } else if ("Rocket Body".equalsIgnoreCase(objectType)) {
                     description = "This is a rocket body.";
                 } else if ("Debris".equalsIgnoreCase(objectType)) {
@@ -141,7 +136,6 @@ public class Main {
                     description = "The object is unknown.";
                 }
 
-                // Update the document with the new description
                 collection.updateOne(
                         new Document("_id", satelliteDoc.getObjectId("_id")),
                         new Document("$set", new Document("DESCRIPTION", description))
