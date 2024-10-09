@@ -1,5 +1,6 @@
 package spysat.satdata;
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.CookieHandler;
@@ -13,7 +14,12 @@ import java.util.List;
 import java.util.Objects;
 import javax.net.ssl.HttpsURLConnection;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
+import com.mongodb.ConnectionString;
+import com.mongodb.MongoClientSettings;
+import com.mongodb.MongoSocketReadException;
+import com.mongodb.client.*;
 import com.mongodb.client.model.BulkWriteOptions;
 import com.mongodb.client.model.UpdateOneModel;
 import com.mongodb.client.model.UpdateOptions;
@@ -22,12 +28,12 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
-import static com.mongodb.client.model.Filters.eq;
 import org.bson.Document;
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoClients;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
+
+import static com.mongodb.client.model.Filters.*;
 
 
 public class Main {
@@ -38,6 +44,8 @@ public class Main {
 
         addAllDataToMongo(satData);
         deleteOldDocuments();
+        addDescriptions();
+        scrapeSatelliteDescription("please");
     }
 
     public static void addAllDataToMongo(JSONArray satData){
@@ -93,10 +101,88 @@ public class Main {
 
             System.out.println("Old documents deleted successfully!");
 
+            mongoClient.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
+
+    public static void addDescriptions() {
+        String uri = "mongodb+srv://cambry:SpySatmongo@spysat.f3iwa.mongodb.net/?retryWrites=true&w=majority&appName=SpySat";
+
+        // Create MongoClient with the settings
+        try (MongoClient mongoClient = MongoClients.create(uri)) {
+            MongoDatabase database = mongoClient.getDatabase("SpySat");
+            MongoCollection<Document> collection = database.getCollection("satellites");
+
+
+            // Find all documents in the collection
+            MongoCursor<Document> cursor = collection.find(or(eq("DESCRIPTION", ""), exists("DESCRIPTION", false))).iterator();
+
+
+            // Iterate through the documents
+            while (cursor.hasNext()) {
+                Document satelliteDoc = cursor.next();
+
+                // Get the object type and object ID from the document
+                String objectType = satelliteDoc.getString("OBJECT_TYPE");
+                String objectId = satelliteDoc.getString("OBJECT_ID");
+
+                String description = "";
+
+                // Check the object type and assign a description accordingly
+                if ("Payload".equalsIgnoreCase(objectType)) {
+                    description = scrapeSatelliteDescription(objectId); // Scrape description for payloads
+                } else if ("Rocket Body".equalsIgnoreCase(objectType)) {
+                    description = "This is a rocket body.";
+                } else if ("Debris".equalsIgnoreCase(objectType)) {
+                    description = "This is debris.";
+                } else {
+                    description = "The object is unknown.";
+                }
+
+                // Update the document with the new description
+                collection.updateOne(
+                        new Document("_id", satelliteDoc.getObjectId("_id")),
+                        new Document("$set", new Document("DESCRIPTION", description))
+                );
+            }
+            mongoClient.close();
+
+        } catch (MongoSocketReadException m){
+            System.out.println("Mongo Socket automatically closed. /n" + m.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static String scrapeSatelliteDescription(String object_id){
+        try {
+            CookieHandler.setDefault(null);
+            org.jsoup.nodes.Document description = Jsoup
+                    .connect("https://nssdc.gsfc.nasa.gov/nmc/spacecraft/display.action?id="+object_id)
+                    .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3")
+                    .referrer("https://www.google.com")
+                    .get();
+            Elements outerPTag = description.getElementsByClass("urone");
+            Elements innerPTag = outerPTag.select("p");
+            Elements innererPTag = innerPTag.select("p");
+            if(!innererPTag.get(1).text().equals("")){
+                return innererPTag.get(1).text();
+            } else {
+                return "No description available";
+            }
+
+        }
+        catch(IOException e){
+            System.out.println("Website not found");
+            return "No description available";
+        } catch(IndexOutOfBoundsException e){
+            System.out.println("Website not found");
+            return "No description available";
+        }
+    }
+
     public static JSONArray getSatelliteData(){
         try {
             String baseURL = "https://www.space-track.org";
@@ -188,6 +274,7 @@ public class Main {
         for (int i = 0; i < Objects.requireNonNull(satData).size(); i++) {
             JSONObject jsonObject = (JSONObject) satData.get(i);
             jsonObject.put("NORAD_CAT_ID", Integer.valueOf(jsonObject.get("NORAD_CAT_ID").toString()));
+            jsonObject.put("DESCRIPTION", "");
             jsonObject.put("REV_AT_EPOCH", Integer.valueOf(jsonObject.get("REV_AT_EPOCH").toString()));
             jsonObject.put("DECAY_DATE", jsonObject.get("DECAY_DATE") == null ? null: jsonObject.get("DECAY_DATE").toString());
 
