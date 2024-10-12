@@ -1,0 +1,39 @@
+networks:
+  spysat:
+services:
+
+  spysat_redis:
+    container_name: spysat_redis
+    image: redis:latest
+    restart: always
+    hostname: spysat_redis
+    command: redis-server --save 20 1 --dir /data --dbfilename dump.rdb --requirepass SpySat!redis!password
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis-data:/data
+    networks:
+      - spysat
+    # command: redis-server --save 20 1 --loglevel warning --requirepass eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81
+    # volumes: 
+    #   - cache:/data
+
+  # prometheus:
+  #   image:  prom/prometheus #bitnami/prometheus #might work just fine but if used the bitnami might want to use it too
+  #   ports:
+  #     - 9090:9090
+  #   depends_on:
+  #     - game_api1
+  #     - game_api2
+  #     - game_api3
+  #   volumes:
+  #     - ./Prometheus:/etc/prometheus
+
+
+
+  # grafana:
+
+
+
+volumes:
+  redis-data:
