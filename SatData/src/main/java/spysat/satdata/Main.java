@@ -35,9 +35,14 @@ import org.jsoup.select.Elements;
 
 import static com.mongodb.client.model.Filters.*;
 
+import com.amazonaws.services.lambda.runtime.Context;
+import com.amazonaws.services.lambda.runtime.RequestHandler;
 
-public class Main {
-    public static void main(String[] args) {
+
+public class Main implements RequestHandler<Object, String>{
+    @Override
+    public String handleRequest(Object input, Context context) {
+        context.getLogger().log("Lambda function invoked with input: " + input);
         JSONArray satData = getSatelliteData();
         calculateOrbits(satData);
         cleanUpSatData(satData);
@@ -45,8 +50,10 @@ public class Main {
         addAllDataToMongo(satData);
         deleteOldDocuments();
         addDescriptions();
-        scrapeSatelliteDescription("please");
+
+        return "Mongo updated from aws lambda";
     }
+
 
     public static void addAllDataToMongo(JSONArray satData){
         String uri = "mongodb+srv://cambry:SpySatmongo@spysat.f3iwa.mongodb.net/?retryWrites=true&w=majority&appName=SpySat";
@@ -268,7 +275,6 @@ public class Main {
         for (int i = 0; i < Objects.requireNonNull(satData).size(); i++) {
             JSONObject jsonObject = (JSONObject) satData.get(i);
             jsonObject.put("NORAD_CAT_ID", Integer.valueOf(jsonObject.get("NORAD_CAT_ID").toString()));
-            jsonObject.put("DESCRIPTION", "");
             jsonObject.put("REV_AT_EPOCH", Integer.valueOf(jsonObject.get("REV_AT_EPOCH").toString()));
             jsonObject.put("DECAY_DATE", jsonObject.get("DECAY_DATE") == null ? null: jsonObject.get("DECAY_DATE").toString());
 
