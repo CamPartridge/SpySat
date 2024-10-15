@@ -1,6 +1,6 @@
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const { Transform } = require('stream');
-
+const { startFilters } = require('./filtersController.js')
 
 const uri = "mongodb+srv://cambry:SpySatmongo@spysat.f3iwa.mongodb.net/?retryWrites=true&w=majority&appName=SpySat";
 // const client = new MongoClient(uri)
@@ -58,6 +58,12 @@ const satelliteController = {
                 await client.close(); // Close the client after the stream ends
                 console.log("Disconnected from Mongo"); 
                 console.log("Number of satellites sent: " + itemCount)  
+
+                try {
+                    await startFilters(req,res) // Assuming startFilters is in the same file
+                } catch (filterError) {
+                    console.error("Error triggering Redis filters:", filterError);
+                }
             });
 
             // Handle any errors during streaming
