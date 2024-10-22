@@ -3,8 +3,8 @@ const { createClient } = require('redis');
 
 //REDIS
 const redisClient = createClient({
-    // url: 'redis://default:SpySat!redis!password@spysat_redis:6379'
-    url: 'redis://default:SpySat!redis!password@localhost:6379'
+    url: 'redis://default:SpySat!redis!password@spysat_redis:6379'
+    // url: 'redis://default:SpySat!redis!password@localhost:6379'
 });
 
 //MONGO
@@ -245,7 +245,7 @@ const doAllFilters = async () => {
 
 const getOrbitFilters = async (orbitLevel) => {
     try {
-        const cursor = collection.find({ SATELLITE_ORBIT: orbitLevel == "OTHER" ? "OTHER_ORBIT" : orbitLevel }).batchSize(1000);
+        const cursor = collection.find({ SATELLITE_ORBIT: orbitLevel }).batchSize(1000);
         const satellites = [];
         for await (const satellite of cursor) {
             satellites.push(satellite);

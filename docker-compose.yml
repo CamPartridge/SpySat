@@ -14,9 +14,50 @@ services:
       - redis-data:/data
     networks:
       - spysat
-    # command: redis-server --save 20 1 --loglevel warning --requirepass eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81
-    # volumes: 
-    #   - cache:/data
+
+  spysat_mysql:
+    container_name: spysat_mysql
+    image: mysql:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: supertokens           # Create the supertokens database
+    ports:
+      - 8080:3306                           # Expose MySQL on port 3307 (host)
+    networks:
+      - spysat
+    volumes:
+      - mysql_db_data:/var/lib/mysql        # Persistent storage for MySQL
+    restart: unless-stopped      # Ensure container restarts if it fails
+
+  supertokens:
+    container_name: supertokens
+    image: registry.supertokens.io/supertokens/supertokens-mysql:latest
+    ports:
+      - 3567:3567  # Expose Supertokens API on port 3567
+    environment:
+      MYSQL_USER: root                  # MySQL username
+      MYSQL_PASSWORD: password              # MySQL password
+      MYSQL_HOST: spysat_mysql              # MySQL host (service name from Docker network)
+      MYSQL_PORT: 3306                      # MySQL port inside the Docker network
+      MYSQL_DATABASE_NAME: supertokens      # MySQL database name
+    depends_on:
+      - spysat_mysql                        # Ensure MySQL container starts before Supertokens
+    networks:
+      - spysat
+    restart: unless-stopped            # Ensure container restarts if it fails
+
+  satellite:
+    container_name: satellite
+    depends_on:
+      - spysat_redis
+    networks:
+      - spysat
+    build: ./Satellite # path to my docker file
+    ports:
+      - "3001:3000" # host port : container port
+    expose:
+      - "3001:3000"
+
 
   # prometheus:
   #   image:  prom/prometheus #bitnami/prometheus #might work just fine but if used the bitnami might want to use it too
@@ -37,3 +78,4 @@ services:
 
 volumes:
   redis-data:
+  mysql_db_data: {}
