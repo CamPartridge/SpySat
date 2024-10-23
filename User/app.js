@@ -21,7 +21,8 @@ const apiKey = undefined; // Set if you have one
 supertokens.init({
     framework: "express",
     supertokens: {
-        connectionURI: "http://localhost:3567", // Ensure this matches your SuperTokens core instance
+        // connectionURI: "http://localhost:3567", // Ensure this matches your SuperTokens core instance
+        connectionURI: "http://supertokens:3567", // Ensure this matches your SuperTokens core instance
         apiKey: apiKey || undefined // Ensure this matches your setup
     },
     appInfo: {
