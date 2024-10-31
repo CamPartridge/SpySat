@@ -4,6 +4,7 @@ const satelliteController = require('../controllers/satelliteController.js')
 const filtersController = require('../controllers/filtersController.js')
 
 router.get('/getall', satelliteController.getall)
+router.post('/search', satelliteController.searchForSatellites)
 
 router.post('/filters', filtersController.startFilters)
 router.get('/filters', filtersController.getByFilter )
