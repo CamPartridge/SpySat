@@ -71,6 +71,18 @@ services:
     expose:
       - "3030:3030"
 
+  imagery:
+    container_name: imagery
+    depends_on:
+      - spysat_redis
+    networks:
+      - spysat
+    build: ./Imagery # path to my docker file
+    ports:
+      - "3003:3003" # host port : container port
+    expose:
+      - "3003:3003"
+
 
   # prometheus:
   #   image:  prom/prometheus #bitnami/prometheus #might work just fine but if used the bitnami might want to use it too

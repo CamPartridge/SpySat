@@ -3,10 +3,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.net.CookieHandler;
-import java.net.CookieManager;
-import java.net.CookiePolicy;
-import java.net.URL;
+import java.net.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -38,6 +35,8 @@ import static com.mongodb.client.model.Filters.*;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 
+import java.nio.charset.StandardCharsets;
+
 
 public class Main implements RequestHandler<Object, String>{
     @Override
@@ -50,10 +49,11 @@ public class Main implements RequestHandler<Object, String>{
         addAllDataToMongo(satData);
         deleteOldDocuments();
         addDescriptions();
+        addImages();
+        addDisciplines();
 
         return "Mongo updated from aws lambda";
     }
-
 
     public static void addAllDataToMongo(JSONArray satData){
         String uri = "mongodb+srv://cambry:SpySatmongo@spysat.f3iwa.mongodb.net/?retryWrites=true&w=majority&appName=SpySat";
@@ -176,13 +176,217 @@ public class Main implements RequestHandler<Object, String>{
 
         }
         catch(IOException e){
-            System.out.println("Website not found");
+//            System.out.println("Website not found");
             return "No description available";
         } catch(IndexOutOfBoundsException e){
-            System.out.println("Website not found");
+//            System.out.println("Website not found");
             return "No description available";
         }
     }
+
+    public static void addDisciplines() {
+        String uri = "mongodb+srv://cambry:SpySatmongo@spysat.f3iwa.mongodb.net/?retryWrites=true&w=majority&appName=SpySat";
+
+        try (MongoClient mongoClient = MongoClients.create(uri)) {
+            MongoDatabase database = mongoClient.getDatabase("SpySat");
+            MongoCollection<Document> collection = database.getCollection("satellites");
+
+
+            MongoCursor<Document> cursor = collection.find(eq( exists("DISCIPLINES", false))).iterator();
+
+
+            while (cursor.hasNext()) {
+                Document satelliteDoc = cursor.next();
+
+                String objectType = satelliteDoc.getString("OBJECT_TYPE");
+                String objectId = satelliteDoc.getString("OBJECT_ID");
+
+
+                List<String> disciplines = new ArrayList<>();
+                if ("Payload".equalsIgnoreCase(objectType)) {
+                    disciplines = scrapeSatelliteDisciplines(objectId);
+                }
+
+                collection.updateOne(
+                        new Document("_id", satelliteDoc.getObjectId("_id")),
+                        new Document("$set", new Document("DISCIPLINES", disciplines))
+                );
+            }
+            mongoClient.close();
+
+        } catch (MongoSocketReadException m){
+            System.out.println("Mongo Socket automatically closed. /n" + m.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static List<String> scrapeSatelliteDisciplines(String object_id) {
+        List<String> disciplineList = new ArrayList<>(); // Initialize an empty list
+        try {
+            CookieHandler.setDefault(null);
+            org.jsoup.nodes.Document description = Jsoup
+                    .connect("https://nssdc.gsfc.nasa.gov/nmc/spacecraft/display.action?id=" + object_id)
+                    .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3")
+                    .referrer("https://www.google.com")
+                    .get();
+
+            Elements lists = description.getElementsByClass("urtwo");
+            Elements ul = lists.select("ul");
+            Element disciplines = ul.get(2);
+
+            // Loop through each <li> item and add it to the list
+            for (Element li : disciplines.select("li")) {
+                disciplineList.add(li.text());
+            }
+        } catch (IOException e) {
+            System.out.println("Website not found");
+        } catch (IndexOutOfBoundsException e) {
+            System.out.println("Discipline list not found");
+        }
+
+        return disciplineList; // Return the list, which may be empty if no <li> items were found
+    }
+
+    public static void addImages() {
+        String uri = "mongodb+srv://cambry:SpySatmongo@spysat.f3iwa.mongodb.net/?retryWrites=true&w=majority&appName=SpySat";
+
+        try (MongoClient mongoClient = MongoClients.create(uri)) {
+            MongoDatabase database = mongoClient.getDatabase("SpySat");
+            MongoCollection<Document> collection = database.getCollection("satellites");
+
+
+            MongoCursor<Document> cursor = collection.find(
+                    and(
+                            or(
+                                    exists("IMAGE", false)
+//                                    eq("IMAGE", "No image available")
+                            )
+                    )
+            ).iterator();
+
+            int numOfSat = 0;
+
+            while (cursor.hasNext()) {
+                Document satelliteDoc = cursor.next();
+
+                String image = scrapeSatelliteImageWiki(satelliteDoc);
+
+
+                collection.updateOne(
+                        new Document("_id", satelliteDoc.getObjectId("_id")),
+                        new Document("$set", new Document("IMAGE", image))
+                );
+                numOfSat++;
+                System.out.println(numOfSat);
+            }
+            mongoClient.close();
+
+        } catch (MongoSocketReadException m){
+            System.out.println("Mongo Socket automatically closed. /n" + m.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    public static String scrapeSatelliteImageWiki(Document satellite) {
+        try {
+            // Base Wikipedia API URL for search
+            String baseUrlSearch = "https://en.wikipedia.org/w/api.php?action=query&list=search&format=json&srsearch=";
+
+            // Formulate query using satellite name and ID
+            String query = String.format("\"%s\" AND \"satellite\"", satellite.get("OBJECT_NAME").toString().split(" ")[0].split("-")[0]);
+            String encodedQuery = URLEncoder.encode(query, StandardCharsets.UTF_8);
+
+            // Full URL for the Wikipedia search
+            String fullUrlSearch = baseUrlSearch + encodedQuery;
+
+            // Set up cookie management
+            CookieManager manager = new CookieManager();
+            manager.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
+            CookieHandler.setDefault(manager);
+
+            // Create the HTTP connection for search
+            URL urlSearch = new URL(fullUrlSearch);
+            HttpURLConnection connSearch = (HttpURLConnection) urlSearch.openConnection();
+            connSearch.setRequestMethod("GET");
+            connSearch.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3");
+            connSearch.setRequestProperty("Accept", "application/json");
+
+            // Read the response for search
+            BufferedReader brSearch = new BufferedReader(new InputStreamReader(connSearch.getInputStream(), StandardCharsets.UTF_8));
+            StringBuilder responseSearch = new StringBuilder();
+            String line;
+            while ((line = brSearch.readLine()) != null) {
+                responseSearch.append(line);
+            }
+            brSearch.close();
+            connSearch.disconnect();
+
+            // Parse the search response to get pageid
+            JSONParser parser = new JSONParser();
+            JSONObject jsonObject = (JSONObject) parser.parse(responseSearch.toString());
+
+            // Navigate to "query" and then to "search"
+            JSONObject queryObject = (JSONObject) jsonObject.get("query");
+            JSONArray searchResults = (JSONArray) queryObject.get("search");
+
+            long pageId = -1;
+            // Check if there is at least one result in the array
+            if (searchResults.size() > 0) {
+                // Extract pageid from the first result
+                JSONObject firstResult = (JSONObject) searchResults.get(0);
+                pageId = (long) firstResult.get("pageid");
+            } else {
+                System.out.println("No search results found for: " + satellite.get("OBJECT_NAME").toString());
+                return "No image available";
+            }
+
+            // Now make the request to get the page images using the pageId
+            String baseUrlImage = "https://en.wikipedia.org/w/api.php?action=query&prop=pageimages&format=json&piprop=original&pageids=";
+            String fullUrlImage = baseUrlImage + pageId;
+
+            // Create the HTTP connection for image query
+            URL urlImage = new URL(fullUrlImage);
+            HttpURLConnection connImage = (HttpURLConnection) urlImage.openConnection();
+            connImage.setRequestMethod("GET");
+            connImage.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3");
+            connImage.setRequestProperty("Accept", "application/json");
+
+            // Read the response for image query
+            BufferedReader brImage = new BufferedReader(new InputStreamReader(connImage.getInputStream(), StandardCharsets.UTF_8));
+            StringBuilder responseImage = new StringBuilder();
+            while ((line = brImage.readLine()) != null) {
+                responseImage.append(line);
+            }
+            brImage.close();
+            connImage.disconnect();
+
+
+            // Parse the image response to get the image source
+            JSONObject jsonImageObject = (JSONObject) parser.parse(responseImage.toString());
+            JSONObject imageQueryObject = (JSONObject) jsonImageObject.get("query");
+            JSONObject pagesObject = (JSONObject) imageQueryObject.get("pages");
+
+            if (pagesObject.containsKey(String.valueOf(pageId))) {
+                JSONObject pageObject = (JSONObject) pagesObject.get(String.valueOf(pageId));
+                if (pageObject.containsKey("original")) {
+                    JSONObject originalImage = (JSONObject) pageObject.get("original");
+                    String imageSource = (String) originalImage.get("source");
+                    return imageSource;
+                } else {
+                    return "No image available";
+                }
+            } else {
+                System.out.println("No page found for the given pageId.");
+                return "No image available";
+            }
+        } catch (Exception e) {
+            System.out.println("Error: " + e);
+            return "No image available";
+        }
+    }
+
+
 
     public static JSONArray getSatelliteData(){
         try {
