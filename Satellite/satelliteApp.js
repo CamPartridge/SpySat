@@ -15,6 +15,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(compression({ level: 1 }));
 
 
-app.use('/satellite', satelliteRouter);
+app.use('/', satelliteRouter);
 
 module.exports = app;

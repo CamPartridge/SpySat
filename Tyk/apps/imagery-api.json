@@ -1,0 +1,21 @@
+{
+    "name":"Imagery API",
+    "api_id":"imagery-api",
+    "org_id":"default",
+    "use_keyless": true,
+    "proxy":{
+       "listen_path":"/images/",
+       "target_url":"http://imagery:3003",
+       "strip_listen_path":true
+    },
+    "active":true,
+    "version_data": {
+     "not_versioned": true,
+     "versions": {
+       "Default": {
+         "name": "Default",
+         "use_extended_paths": true
+       }
+     }
+   }
+ }

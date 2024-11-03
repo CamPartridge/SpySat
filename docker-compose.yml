@@ -22,7 +22,7 @@ services:
       MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: supertokens           # Create the supertokens database
     ports:
-      - 8080:3306                           # Expose MySQL on port 3307 (host)
+      - 3333:3306                           # Expose MySQL on port 3307 (host)
     networks:
       - spysat
     volumes:
@@ -82,6 +82,30 @@ services:
       - "3003:3003" # host port : container port
     expose:
       - "3003:3003"
+
+  tyk_redis:
+    container_name: tyk_redis
+    image: redis:latest
+    ports:
+      - "6380:6379"  # Expose on a different host port if needed
+    networks:
+      - spysat
+    restart: always
+
+  tyk_gateway:
+    container_name: tyk_gateway
+    image: docker.tyk.io/tyk-gateway/tyk-gateway:latest
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./Tyk/tyk.conf:/opt/tyk-gateway/tyk.conf
+      - ./Tyk/apps:/opt/tyk-gateway/apps
+    networks:
+      - spysat
+    depends_on:
+      - tyk_redis
+      - satellite
+    restart: always
 
 
   # prometheus:
