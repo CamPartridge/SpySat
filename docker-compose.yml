@@ -105,6 +105,8 @@ services:
     depends_on:
       - tyk_redis
       - satellite
+      - user
+      - imagery
     restart: always
 
 

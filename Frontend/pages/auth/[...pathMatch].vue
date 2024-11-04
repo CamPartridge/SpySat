@@ -11,9 +11,9 @@
                     window.supertokensUIInit("supertokensui", {
                         appInfo: {
                             appName: "SpySat",
-                            apiDomain: "http://localhost:3030",
+                            apiDomain: "http://localhost:8080",
                             websiteDomain: "http://localhost:3000",
-                            apiBasePath: "/auth",
+                            apiBasePath: "/user/auth",
                             websiteBasePath: "/auth"
                         },
                         recipeList: [
