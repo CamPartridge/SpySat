@@ -30,6 +30,7 @@ const DISCIPLINES = ["ASTRONOMY", "EARTH SCIENCE", "PLANETARY SCIENCE", "SOLAR P
     "SPACE PHYSICS", "LIFE SCIENCE", "MICROGRAVITY", "HUMAN CREW", "ENGINEERING",
     "COMMUNICATIONS", "NAVIGATION/GLOBAL POSITIONING", "SURVEILLANCE AND OTHER MILITARY",
     "RESUPPLY/REFURBISHMENT/REPAIR", "TECHNOLOGY APPLICATIONS", "UNCATEGORIZED COSMOS", "OTHER"];
+const EVERYTHING = ["EVERYTHING"]
 
 const COUNTRIES = [
     "ALGERIA", "ARAB SATELLITE COMMUNICATIONS ORGANIZATION", "ARGENTINA", "ASIA SATELLITE TELECOMMUNICATIONS COMPANY (ASIASAT)",
@@ -79,79 +80,64 @@ const filtersController = {
     getByFilter: async (req, res) => {
         try {
             const { size, level, type, country, discipline } = req.query;
-            await redisClient.connect();
-    
+
+            // Ensure Redis client is connected
+            if (!redisClient.isOpen) {
+                await redisClient.connect();
+            }
+
+            let filterKeys = [];
+
+            // Collect filter keys based on query parameters
+            if (size) filterKeys.push(size);
+            if (level) filterKeys.push(level);
+            if (type) filterKeys.push(type);
+            if (country) filterKeys.push(country);
+            if (discipline) filterKeys.push(discipline);
+
             let filteredSatellites = [];
-    
-            // Fetch default payload if no filters are specified
-            if (!size && !level && !type && !country && !discipline) {
-                const defaultTypeFilter = await redisClient.get('PAYLOAD');
-                filteredSatellites.push(JSON.parse(defaultTypeFilter));
+
+            if (filterKeys.length === 0) {
+                const allSatellites = await redisClient.get('EVERYTHING');
+                filteredSatellites = JSON.parse(allSatellites || '[]');
             } else {
-                // Fetch filtered data for each type
-                const filterPromises = [];
-    
-                if (size) {
-                    filterPromises.push(redisClient.get(size));
-                }
-    
-                if (level) {
-                    filterPromises.push(redisClient.get(level));
-                }
-    
-                if (type) {
-                    filterPromises.push(redisClient.get(type));
-                }
-    
-                if (country) {
-                    filterPromises.push(redisClient.get(country));
-                }
-    
-                if (discipline) {
-                    filterPromises.push(redisClient.get(discipline));
-                }
-    
+                // Fetch data for all provided filters
+                const filterPromises = filterKeys.map((key) => redisClient.get(key));
                 const filterResults = await Promise.all(filterPromises);
-    
-                filterResults.forEach(result => {
-                    if (result) {
-                        filteredSatellites.push(JSON.parse(result));
-                    }
-                });
-            }
-    
-            let finalSatellites;
-    
-            if (filteredSatellites.length > 0) {
-                finalSatellites = filteredSatellites[0];
-    
-                for (let i = 1; i < filteredSatellites.length; i++) {
-                    const currentFilter = filteredSatellites[i];
-    
-                    finalSatellites = finalSatellites.filter(satellite => {
-                        const matchesCurrent = currentFilter.some(item => item.NORAD_CAT_ID === satellite.NORAD_CAT_ID);
-    
-                        const disciplineMatches = currentFilter.some(item =>
-                            item.DISCIPLINES && item.DISCIPLINES.some(discipline =>
-                                satellite.DISCIPLINES && satellite.DISCIPLINES.includes(discipline)
+
+                // Parse results and filter out null or empty arrays
+                const parsedResults = filterResults
+                    .map((result) => JSON.parse(result || '[]'))
+                    .filter((arr) => arr.length > 0);
+
+                // Perform intersection of all arrays based on OBJECT_ID
+                if (parsedResults.length > 0) {
+                    filteredSatellites = parsedResults.reduce((acc, curr) =>
+                        acc.filter((satellite) =>
+                            curr.some(
+                                (otherSatellite) =>
+                                    satellite.OBJECT_ID === otherSatellite.OBJECT_ID
                             )
-                        );
-    
-                        return matchesCurrent && disciplineMatches;
-                    });
+                        )
+                    );
                 }
-            } else {
-                finalSatellites = [];
             }
-    
-            res.status(200).json(finalSatellites);
+
+            // Response with filtered satellites or an empty array
+            res.status(200).json(filteredSatellites);
         } catch (error) {
             res.status(500).json({ error: error.message });
         } finally {
-            await redisClient.disconnect();
+            // Disconnect Redis if connected
+            if (redisClient.isOpen) {
+                await redisClient.disconnect();
+            }
         }
     }
-    
+
+
+
+
 }
 
 module.exports = filtersController
@@ -161,6 +147,31 @@ const addFilterToRedis = async (filterName, groupOfSatellites) => {
 }
 
 const doAllFilters = async () => {
+    for (const everything of Object.values(EVERYTHING)) {
+        console.time(everything + " filter time")
+        getEverything()
+            .then(async (satellite) => {
+                await addFilterToRedis(everything, JSON.stringify(satellite))
+            })
+            .then(async () => {
+                console.log(everything + ' Data added to Redis successfully!');
+                console.timeEnd(everything + " filter time")
+
+                numberOfFilters++
+
+                if (numberOfFilters > COUNTRY_CODES.length + ORBITAL_LEVELS.length + SATELLITE_SIZE.length + SATELLITE_TYPE.length + DISCIPLINES.length) {
+                    await mongoClient.close();
+                    await redisClient.quit();
+                    console.log("CONNECTIONS CLOSED")
+                }
+            })
+            .catch((error) => {
+                console.log(everything + " Data unable to be added to Redis");
+                console.log('Error:', error);
+                console.timeEnd(everything + " filter time")
+            });
+    }
+
     for (const level of Object.values(ORBITAL_LEVELS)) {
         console.time((level == "OTHER" ? "OTHER_ORBIT" : level) + " filter time")
         getOrbitFilters(level)
@@ -174,7 +185,7 @@ const doAllFilters = async () => {
 
                 numberOfFilters++
 
-                if (numberOfFilters > COUNTRY_CODES.length + ORBITAL_LEVELS.length + SATELLITE_SIZE.length + SATELLITE_TYPE.length + DISCIPLINES.length - 1) {
+                if (numberOfFilters > COUNTRY_CODES.length + ORBITAL_LEVELS.length + SATELLITE_SIZE.length + SATELLITE_TYPE.length + DISCIPLINES.length) {
                     await mongoClient.close();
                     await redisClient.quit();
                     console.log("CONNECTIONS CLOSED")
@@ -200,7 +211,7 @@ const doAllFilters = async () => {
 
                 numberOfFilters++
 
-                if (numberOfFilters > COUNTRY_CODES.length + ORBITAL_LEVELS.length + SATELLITE_SIZE.length + SATELLITE_TYPE.length + DISCIPLINES.length - 1) {
+                if (numberOfFilters > COUNTRY_CODES.length + ORBITAL_LEVELS.length + SATELLITE_SIZE.length + SATELLITE_TYPE.length + DISCIPLINES.length) {
                     await mongoClient.close();
                     await redisClient.quit();
                     console.log("CONNECTIONS CLOSED")
@@ -226,7 +237,7 @@ const doAllFilters = async () => {
 
                 numberOfFilters++
 
-                if (numberOfFilters > COUNTRY_CODES.length + ORBITAL_LEVELS.length + SATELLITE_SIZE.length + SATELLITE_TYPE.length + DISCIPLINES.length - 1) {
+                if (numberOfFilters > COUNTRY_CODES.length + ORBITAL_LEVELS.length + SATELLITE_SIZE.length + SATELLITE_TYPE.length + DISCIPLINES.length) {
                     await mongoClient.close();
                     await redisClient.quit();
                     console.log("CONNECTIONS CLOSED")
@@ -252,7 +263,7 @@ const doAllFilters = async () => {
 
                 numberOfFilters++
 
-                if (numberOfFilters > COUNTRY_CODES.length + ORBITAL_LEVELS.length + SATELLITE_SIZE.length + SATELLITE_TYPE.length + DISCIPLINES.length - 1) {
+                if (numberOfFilters > COUNTRY_CODES.length + ORBITAL_LEVELS.length + SATELLITE_SIZE.length + SATELLITE_TYPE.length + DISCIPLINES.length) {
                     try {
 
                         await mongoClient.close();
@@ -285,7 +296,7 @@ const doAllFilters = async () => {
 
                 numberOfFilters++
 
-                if (numberOfFilters > COUNTRY_CODES.length + ORBITAL_LEVELS.length + SATELLITE_SIZE.length + SATELLITE_TYPE.length + DISCIPLINES.length - 1) {
+                if (numberOfFilters > COUNTRY_CODES.length + ORBITAL_LEVELS.length + SATELLITE_SIZE.length + SATELLITE_TYPE.length + DISCIPLINES.length ) {
                     await mongoClient.close();
                     await redisClient.quit();
                     console.log("CONNECTIONS CLOSED")
@@ -367,6 +378,20 @@ const getDisciplineFilters = async (discipline) => {
         return satellites
     } catch (error) {
         console.error('Error fetching ' + discipline + ' satellites:', error);
+        return {}
+    }
+}
+
+const getEverything = async () => {
+    try {
+        const cursor = collection.find({}).batchSize(1000); 
+        const satellites = [];
+        for await (const satellite of cursor) {
+            satellites.push(satellite);
+        }
+        return satellites;
+    } catch (error) {
+        console.error('Error fetching all satellites:', error);
         return {}
     }
 }
