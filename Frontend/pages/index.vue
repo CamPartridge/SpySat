@@ -377,11 +377,7 @@ const handleKeydown = (event) => {
 
 const getAllSatellites = async () => {
   try {
-    // const response = await axios.get(`http://localhost:8080/satellite/getall`);
-    const response = await axios.get(`http://localhost:8080/satellite/filters?type=PAYLOAD`);
-    // const response = await axios.get(`http://localhost:8080/satellite/filters?country=ALGERIA`);
-    // const response = await axios.get(`http://localhost:8080/satellite/filters?level=GEO`);
-    // const response = await axios.post(`http://localhost:8080/satellite/search?searchQuery=ALSAT 1`)
+    const response = await axios.get(`http://localhost:8080/satellite/filters`);
     currentSatellites.value = response.data;
     updateSatelliteDisplay()
   } catch (error) {
