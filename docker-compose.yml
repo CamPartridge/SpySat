@@ -53,6 +53,7 @@ services:
     networks:
       - spysat
     build: ./Satellite # path to my docker file
+    restart: always
     ports:
       - "3001:3000" # host port : container port
     expose:

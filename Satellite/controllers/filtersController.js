@@ -111,10 +111,8 @@ const filtersController = {
                     filterPromises.push(redisClient.get(discipline));
                 }
     
-                // Wait for all filter data to be retrieved
                 const filterResults = await Promise.all(filterPromises);
     
-                // Combine non-null results into filteredSatellites
                 filterResults.forEach(result => {
                     if (result) {
                         filteredSatellites.push(JSON.parse(result));
@@ -124,26 +122,21 @@ const filtersController = {
     
             let finalSatellites;
     
-            // Check if we have any filtered satellites to process
             if (filteredSatellites.length > 0) {
-                // We start with the first filter as the base for intersection
                 finalSatellites = filteredSatellites[0];
     
-                // Iterate through all other filters to compute the intersection
                 for (let i = 1; i < filteredSatellites.length; i++) {
                     const currentFilter = filteredSatellites[i];
     
                     finalSatellites = finalSatellites.filter(satellite => {
                         const matchesCurrent = currentFilter.some(item => item.NORAD_CAT_ID === satellite.NORAD_CAT_ID);
     
-                        // Check if disciplines match if discipline filter is applied
                         const disciplineMatches = currentFilter.some(item =>
                             item.DISCIPLINES && item.DISCIPLINES.some(discipline =>
                                 satellite.DISCIPLINES && satellite.DISCIPLINES.includes(discipline)
                             )
                         );
     
-                        // Satellite must match current filter and disciplines
                         return matchesCurrent && disciplineMatches;
                     });
                 }
@@ -151,7 +144,6 @@ const filtersController = {
                 finalSatellites = [];
             }
     
-            // Send response with filtered satellites
             res.status(200).json(finalSatellites);
         } catch (error) {
             res.status(500).json({ error: error.message });

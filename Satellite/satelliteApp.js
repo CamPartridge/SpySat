@@ -4,8 +4,15 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var satelliteRouter = require('./routes/satelliteRoutes.js')
 const compression = require('compression');
+const cors = require('cors');
 
 var app = express();
+
+app.use(cors({
+    origin: 'http://localhost:3000',  // Specify the frontend's URL
+    credentials: true,               // Allow credentials (cookies, etc.)
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],  // Allow specific methods if needed
+  }));
 
 app.use(logger('dev'));
 app.use(express.json());

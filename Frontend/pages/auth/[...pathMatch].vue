@@ -1,6 +1,8 @@
 <script>
     import { defineComponent, onMounted, onUnmounted } from 'vue';
+    import NavBar from '@@/component/NavBar.vue';
     export default defineComponent({
+        components: { NavBar },
         setup() {
             const loadScript = (src) => {
                 const script = document.createElement('script');
@@ -48,5 +50,22 @@
 </script>
 
 <template>
+    <NavBar>
+      <!-- Left Slot -->
+      <template #left>
+        Home
+      </template>
+      
+      <!-- Center Slot -->
+      <template #center>
+        <ul class="nav-items">
+        </ul>
+      </template>
+      
+      <!-- Right Slot -->
+      <template #right>
+        <button @click="logout">Logout</button>
+      </template>
+    </NavBar>
     <div id="supertokensui" />
 </template>
