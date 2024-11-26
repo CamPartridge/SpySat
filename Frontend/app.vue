@@ -16,15 +16,18 @@
 
 
 <style>
+/* @import url('https://fonts.googleapis.com/css2?family=Teko:wght@300..700&display=swap'); */
+@import url('https://fonts.googleapis.com/css2?family=Gemunu+Libre:wght@200..800&family=Teko:wght@300..700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Gemunu+Libre:wght@200..800&family=Saira+Condensed:wght@100;200;300;400;500;600;700;800;900&family=Teko:wght@300..700&display=swap');
 /* Global styles can go here */
 :root {
-  --primary-50: #011724;
-  --primary-100: #062c43; /* Main primary color */
+  --primary-50: #00131d;
+  --primary-100: #001927; /* Main primary color */
   --primary-200: #054569;
   --primary-300: #5591a9;
   --primary-400: #9ccddc;
   --primary-500: #ced7e0;
-  --interaction: #3df4fa; /* Interaction color */
+  --interaction: #00dfff; /* Interaction color */
   
   --highlight-satelliteGreen: #7ed957;
   --highlight-rocketOrange: #ff914d;
@@ -41,6 +44,12 @@
 
 /* Optional: Set body styles */
 body {
-  margin: 0; /* Remove default margin */
+  margin: 0;
+  font-family: "Saira Condensed", sans-serif;
+  font-weight: 400;
+  font-style: normal;
 }
+
+
+
 </style>

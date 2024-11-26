@@ -78,6 +78,7 @@ services:
       - spysat_redis
     networks:
       - spysat
+    restart: always
     build: ./Imagery # path to my docker file
     ports:
       - "3003:3003" # host port : container port
@@ -109,22 +110,6 @@ services:
       - user
       - imagery
     restart: always
-
-
-  # prometheus:
-  #   image:  prom/prometheus #bitnami/prometheus #might work just fine but if used the bitnami might want to use it too
-  #   ports:
-  #     - 9090:9090
-  #   depends_on:
-  #     - game_api1
-  #     - game_api2
-  #     - game_api3
-  #   volumes:
-  #     - ./Prometheus:/etc/prometheus
-
-
-
-  # grafana:
 
 
 

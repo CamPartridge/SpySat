@@ -5,7 +5,8 @@ export default {
 
   plugins: [
     '~/plugins/supertokens.client.js',
-    { src: '~/plugins/three.js', mode: 'client' }
+    { src: '~/plugins/three.js', mode: 'client' },
+    '~/plugins/customDropdown.js'
   ],
 
   modules: [
