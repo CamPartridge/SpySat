@@ -21,8 +21,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Gemunu+Libre:wght@200..800&family=Saira+Condensed:wght@100;200;300;400;500;600;700;800;900&family=Teko:wght@300..700&display=swap');
 /* Global styles can go here */
 :root {
-  --primary-50: #00131d;
-  --primary-100: #001927; /* Main primary color */
+  --primary-50: #09131e;
+  --primary-100: #091523; /* Main primary color */
   --primary-200: #054569;
   --primary-300: #5591a9;
   --primary-400: #9ccddc;

@@ -33,7 +33,8 @@
 
 
           <UDropdown class="custom-dropdown" v-model="selectedCountry.label" :items="countryItems" mode="hover" :popper="{
-            placement: 'bottom-start'}" style="height: 50px;">
+            placement: 'bottom-start'
+          }" style="height: 50px;">
             <UButton color="white" :label="selectedCountry?.label || 'COUNTRY'" class="custom-button" />
           </UDropdown>
 
@@ -69,6 +70,11 @@
         </div>
       </div>
 
+      <div class="educationTabs" :style="{ width: educationTabWidth }">
+        <h1 class="education" @click="whatAreOrbits">Satellite Orbits</h1>
+        <h1 class="education" @click="whatIsOrbitOverpopulation">Orbit Overpopulation</h1>
+        <h1 class="education" @click="whatIsATLE">TLE's</h1>
+      </div>
     </div>
   </div>
 </template>
@@ -170,6 +176,7 @@ const togglePanel = () => {
 }
 
 const canvasWidth = computed(() => (isPanelOpen.value ? '100vw' : '77vw'))
+const educationTabWidth = computed(() => (isPanelOpen.value ? '70vw' : '93vw'))
 
 const handleMainClick = (event) => {
   if (!isPanelOpen.value && event.clientX > window.innerWidth * 0.66) {
@@ -556,7 +563,7 @@ const onSearchNone = () => {
     color: 'red',
     ui: {
       ...appConfig.ui.toast.slots,
-      wrapper: 'fixed bottom-4 left-4 w-full max-w-sm',
+      wrapper: 'fixed bottom-4 left-4 w-full max-w-sm  z-[99999]',
       container: 'bg-[color:var(--primary-50)] rounded-lg shadow-lg',
     },
   })
@@ -569,7 +576,7 @@ const onFilterNone = () => {
     color: 'red',
     ui: {
       ...appConfig.ui.toast.slots,
-      wrapper: 'fixed bottom-4 left-4 w-full max-w-sm', // Set max width to a larger value (max-w-sm or max-w-md)
+      wrapper: 'fixed bottom-4 left-4 w-full max-w-sm  z-[99999]', // Set max width to a larger value (max-w-sm or max-w-md)
       container: 'bg-[color:var(--primary-50)] text-white rounded-lg shadow-lg',
     }
   })
@@ -609,6 +616,223 @@ const welcomeToSpysat = () => {
   panelDetails.innerHTML += "<p style=\"padding-left: 2em;\"><strong class=\"emphasis blue\">Example</strong>: Type 'ISS' to find satellites related to the International Space Station, or enter '1990-037B' to search for the Hubble Space Telescope (HST) by its Object ID</p>"
   panelDetails.innerHTML += "<br>"
 }
+
+const whatIsOrbitOverpopulation = () => {
+  const panelDetails = document.querySelector('.panel-details');
+  
+  panelDetails.innerHTML = `<img src="https://i0.wp.com/spacenews.com/wp-content/uploads/2018/11/SpaceJunk.jpg?fit=1000%2C666&ssl=1"  class="satelliteImages">`
+  panelDetails.innerHTML += "<br>";
+  panelDetails.innerHTML += "<h2 class=\"blue\">What is Orbit Overpopulation?</h2>";
+  panelDetails.innerHTML += "<br>";
+  panelDetails.innerHTML += "<p>Orbit overpopulation refers to the growing number of satellites and debris in Earth’s orbits, especially in Low Earth Orbit (LEO), Medium Earth Orbit (MEO), and Geostationary Orbit (GEO). As more satellites are launched, the risk of collisions, interference, and long-term sustainability of space activities increases. This growing density of objects in space poses serious risks to both operational satellites and future space exploration.</p>";
+  panelDetails.innerHTML += "<br>";
+  // panelDetails.innerHTML += "<img src=\"https://www.esa.int/var/esa/storage/images/esa_multimedia/videos/2019/02/distribution_of_space_debris_in_orbit_around_earth/19223416-1-eng-GB/Distribution_of_space_debris_in_orbit_around_Earth_pillars.jpg\" class=\"satelliteImages\">";
+  panelDetails.innerHTML += "<br>";
+  panelDetails.innerHTML += "<p><strong class=\"emphasis blue\">What Causes Orbit Overpopulation?</strong>: Orbit overpopulation is driven by an increasing number of satellite launches, often with small and large constellations intended for telecommunications, Earth observation, or scientific research. Moreover, discarded rocket stages, malfunctioning satellites, and debris from satellite collisions contribute to the clutter in space.</p>";
+  panelDetails.innerHTML += "<br>";
+  panelDetails.innerHTML += "<p><strong class=\"emphasis blue\">Why is Orbit Overpopulation a Problem?</strong>: The consequences of orbit overpopulation are far-reaching:</p>";
+  panelDetails.innerHTML += "<ul>";
+  panelDetails.innerHTML += "<li class=\"indent\"><strong class=\"blue\">Collisions:</strong> With more objects in space, the likelihood of collisions between satellites or between a satellite and space debris increases. These collisions create more debris, exacerbating the problem in a dangerous feedback loop.</li>";
+  panelDetails.innerHTML += "<li class=\"indent\"><strong class=\"blue\">Damage to Satellites:</strong> Even small debris traveling at high velocities can severely damage or destroy operational satellites, leading to costly repairs or replacements.</li>";
+  panelDetails.innerHTML += "<li class=\"indent\"><strong class=\"blue\">Space Junk:</strong> Space debris poses a significant hazard to future space missions, including those to the Moon, Mars, and beyond. It is also a barrier to new satellite deployments and space exploration efforts.</li>";
+  panelDetails.innerHTML += "<li class=\"indent\"><strong class=\"blue\">Impact on Future Space Exploration:</strong> Overpopulated orbits limit available space for future missions, and debris accumulation risks making certain orbits unusable, which could delay or complicate upcoming missions.</li>";
+  panelDetails.innerHTML += "</ul>";
+  panelDetails.innerHTML += "<br>";
+  panelDetails.innerHTML += "<p><strong class=\"emphasis blue\">Solutions to Orbit Overpopulation:</strong> There are several ways to address orbit overpopulation, including:</p>";
+  panelDetails.innerHTML += "<ul>";
+  panelDetails.innerHTML += "<li class=\"indent\"><strong class=\"blue\">Space Debris Removal:</strong> Developing technologies that can remove debris from orbit, such as robotic arms or ion thrusters, to prevent future collisions and clean up space.</li>";
+  panelDetails.innerHTML += "<li class=\"indent\"><strong class=\"blue\">Satellite End-of-Life Protocols:</strong> Establishing better guidelines for deorbiting satellites and rocket stages to ensure that they don't remain in orbit unnecessarily.</li>";
+  panelDetails.innerHTML += "<li class=\"indent\"><strong class=\"blue\">Better Tracking and Coordination:</strong> Improving the monitoring and coordination of satellite movements to avoid collisions and track smaller pieces of debris.</li>";
+  panelDetails.innerHTML += "<li class=\"indent\"><strong class=\"blue\">International Collaboration:</strong> Global cooperation between space agencies, governments, and private companies to manage the growing number of objects in orbit.</li>";
+  panelDetails.innerHTML += "</ul>";
+  panelDetails.innerHTML += "<br>";
+  panelDetails.innerHTML += "<p>Orbit overpopulation is a growing issue that requires immediate attention to preserve the safety and sustainability of space. As satellite activity continues to increase, the space community must work together to mitigate the risks and find innovative solutions to preserve the space environment for future generations.</p>";
+}
+
+
+const whatAreOrbits = () => {
+  const panelDetails = document.querySelector('.panel-details');
+  //https://www.esa.int/var/esa/storage/images/esa_multimedia/images/2018/10/edrs-a_in_geostationary_orbit/17721052-1-eng-GB/EDRS-A_in_geostationary_orbit_pillars.jpg
+  panelDetails.innerHTML = `<img src="https://www.esa.int/var/esa/storage/images/esa_multimedia/images/2018/10/edrs-a_in_geostationary_orbit/17721052-1-eng-GB/EDRS-A_in_geostationary_orbit_pillars.jpg"  class="satelliteImages">`
+  panelDetails.innerHTML += "<br>";
+  panelDetails.innerHTML += "<h2 class=\"blue\">About Satellite Orbits</h2>";
+  panelDetails.innerHTML += "<br>";
+  panelDetails.innerHTML += "<p>Satellites orbit Earth at different levels depending on their purpose, function, and mission requirements. These levels are categorized into distinct orbital regimes, each with unique characteristics and applications. SpySat calculates and displays the orbit level for each satellite, providing users with detailed insights into its trajectory and operational range.</p>";
+  panelDetails.innerHTML += "<br>";
+  panelDetails.innerHTML += `<img src="https://www.researchgate.net/profile/Ahmed-Maher-30/publication/346041650/figure/fig1/AS:960167290089472@1605933129415/LEO-MEO-GEO-HEO-Illustration.ppm"  class="satelliteImages">`
+  panelDetails.innerHTML += "<br>";
+  panelDetails.innerHTML += "<p><strong class=\"emphasis blue\">Low Earth Orbit (LEO)</strong>: Found between 180–2,000 km above Earth's surface, LEO is ideal for Earth observation, communication, and scientific missions due to its proximity and shorter orbital periods.</p>";
+  panelDetails.innerHTML += "<br>";
+  panelDetails.innerHTML += "<p><strong class=\"emphasis blue\">Medium Earth Orbit (MEO)</strong>: Situated at altitudes of 2,000–35,786 km, MEO is commonly used for navigation systems like GPS and specialized communication satellites.</p>";
+  panelDetails.innerHTML += "<br>";
+  panelDetails.innerHTML += "<p><strong class=\"emphasis blue\">Highly Elliptical Orbit (HEO)</strong>: These orbits have a unique elongated shape, enabling satellites to spend extended periods over specific regions, often used for specialized communication and scientific missions.</p>";
+  panelDetails.innerHTML += "<br>";
+  panelDetails.innerHTML += "<p><strong class=\"emphasis blue\">Geostationary Orbit (GEO)</strong>: Positioned at approximately 35,786 km above the equator, satellites in GEO appear stationary relative to Earth, making them perfect for weather monitoring and broadcast services.</p>";
+  panelDetails.innerHTML += "<br>";
+  panelDetails.innerHTML += "<p>Understanding these orbit levels helps in identifying the role and capabilities of satellites in our dynamic global network. With SpySat, you can explore these orbits and their impact in real time!</p>";
+
+}
+
+const whatIsATLE = () => {
+  const panelDetails = document.querySelector('.panel-details');
+
+  panelDetails.innerHTML = `<img src="https://i0.wp.com/neosensory.com/wp-content/uploads/2020/07/Larger-blog-banner-_-satellite-III.png?fit=1568%2C836&ssl=1"  class="satelliteImages">`
+  panelDetails.innerHTML += "<br>"
+  panelDetails.innerHTML += "<h2 class=\"blue\">What is a TLE?</h2>"
+  panelDetails.innerHTML += "<br>"
+  panelDetails.innerHTML += "<p>You will see TLE across much of SpySat and for each satellite but what actually does it mean. A Two-Line Element Set (TLE) is a standardized data format used to represent the orbital elements of Earth-orbiting objects, such as satellites or debris. It enables precise tracking and prediction of their positions in space. A TLE consists of two lines of text (and optionally a preceding object name) that encode parameters defining an object's orbit.</p>"
+  panelDetails.innerHTML += "<br>"
+  panelDetails.innerHTML += "<p>Here is an example TLE from the ISS:</p>"
+  panelDetails.innerHTML += "<p class=\"sidenote\">ISS (ZARYA)</p>"
+  panelDetails.innerHTML += "<p class=\"sidenote\">1 25544U 98067A   20300.83097691  .00001534  00000-0  35580-4 0  9996</p>"
+  panelDetails.innerHTML += "<p class=\"sidenote\">2 25544  51.6453  57.0843 0001671  64.9808  73.0513 15.49338189252428</p>"
+  panelDetails.innerHTML += "<br>"
+
+  panelDetails.innerHTML += "<h3 class=\"emphasis\">Object Name</h3>"
+  panelDetails.innerHTML += "<p>A descriptive name of up to 24 characters to identify the satellite</p>"
+  panelDetails.innerHTML += "<p class=\"sidenote red\"><strong>ISS (ZARYA)</strong></p>"
+  panelDetails.innerHTML += "<p class=\"sidenote\">1 25544U 98067A   20300.83097691  .00001534  00000-0  35580-4 0  9996</p>"
+  panelDetails.innerHTML += "<p class=\"sidenote\">2 25544  51.6453  57.0843 0001671  64.9808  73.0513 15.49338189252428</p>"
+  panelDetails.innerHTML += "<br>"
+
+  panelDetails.innerHTML += "<h3 class=\"emphasis\">Line Number</h3>"
+  panelDetails.innerHTML += "<p>The first column is line number of the TLE</p>"
+  panelDetails.innerHTML += "<p class=\"sidenote\">ISS (ZARYA)</p>"
+  panelDetails.innerHTML += "<p class=\"sidenote\"><strong class=\"red\">1</strong> 25544U 98067A   20300.83097691  .00001534  00000-0  35580-4 0  9996</p>"
+  panelDetails.innerHTML += "<p class=\"sidenote\"><strong class=\"red\">2</strong> 25544  51.6453  57.0843 0001671  64.9808  73.0513 15.49338189252428</p>"
+
+  panelDetails.innerHTML += "<br>"
+  panelDetails.innerHTML += "<h3 class=\"emphasis\">Satellite Catalog Number</h3>"
+  panelDetails.innerHTML += "<p>Unique ID for the satellite</p>"
+  panelDetails.innerHTML += "<p class=\"sidenote\">ISS (ZARYA)</p>"
+  panelDetails.innerHTML += "<p class=\"sidenote\">1 <strong class=\"red\">25544</strong>U 98067A   20300.83097691  .00001534  00000-0  35580-4 0  9996</p>"
+  panelDetails.innerHTML += "<p class=\"sidenote\">2 <strong class=\"red\">25544</strong> 51.6453  57.0843 0001671  64.9808  73.0513 15.49338189252428</p>"
+
+  panelDetails.innerHTML += "<br>"
+  panelDetails.innerHTML += "<h3 class=\"emphasis\">Secutiry Classification</h3>"
+  panelDetails.innerHTML += "<p>This field is security classification.</p>"
+  panelDetails.innerHTML += "<p>U means Unclassified, All of publicly available TLEs have U in this field.</p>"
+  panelDetails.innerHTML += "<p>It is said that S is set in this field for the non-public objects, such as military satellites, however, we cannot see it.</p>"
+  panelDetails.innerHTML += "<p class=\"sidenote\">ISS (ZARYA)</p>"
+  panelDetails.innerHTML += "<p class=\"sidenote\">1 25544<strong class=\"red\">U</strong> 98067A   20300.83097691  .00001534  00000-0  35580-4 0  9996</p>"
+  panelDetails.innerHTML += "<p class=\"sidenote\">2 2554451.6453  57.0843 0001671  64.9808  73.0513 15.49338189252428</p>"
+
+  panelDetails.innerHTML += "<br>"
+  panelDetails.innerHTML += "<h3 class=\"emphasis\">International Designator</h3>"
+  panelDetails.innerHTML += "<p>The two lower digits of launch year, the number of launch (3 numbers), identification of launched object (1-3 characters).</p>"
+  panelDetails.innerHTML += "<p class=\"sidenote\">ISS (ZARYA)</p>"
+  panelDetails.innerHTML += "<p class=\"sidenote\">1 25544U <strong class=\"red\">98067A</strong> 20300.83097691  .00001534  00000-0  35580-4 0  9996</p>"
+  panelDetails.innerHTML += "<p class=\"sidenote\">2 25544 51.6453  57.0843 0001671  64.9808  73.0513 15.49338189252428</p>"
+
+  panelDetails.innerHTML += "<br>"
+  panelDetails.innerHTML += "<h3 class=\"emphasis\">Epoch</h3>"
+  panelDetails.innerHTML += "<p>Date/time of orbital element validity in decimal days of the year.</p>"
+  panelDetails.innerHTML += "<p class=\"sidenote\">ISS (ZARYA)</p>"
+  panelDetails.innerHTML += "<p class=\"sidenote\">1 25544U 98067A  <strong class=\"red\">20300.83097691</strong>  .00001534  00000-0  35580-4 0  9996</p>"
+  panelDetails.innerHTML += "<p class=\"sidenote\">2 25544 51.6453  57.0843 0001671  64.9808  73.0513 15.49338189252428</p>"
+
+  panelDetails.innerHTML += "<br>"
+  panelDetails.innerHTML += "<h3 class=\"emphasis\">First Time Derivative of Mean Motion</h3>"
+  panelDetails.innerHTML += "<p>This is the first time derivative of the mean motion divided by two (in rev/day^2).</p>"
+  panelDetails.innerHTML += "<p class=\"sidenote\">ISS (ZARYA)</p>"
+  panelDetails.innerHTML += "<p class=\"sidenote\">1 25544U 98067A 20300.83097691   <strong class=\"red\">.00001534</strong>  00000-0  35580-4 0  9996</p>"
+  panelDetails.innerHTML += "<p class=\"sidenote\">2 25544 51.6453  57.0843 0001671  64.9808  73.0513 15.49338189252428</p>"
+
+  panelDetails.innerHTML += "<br>"
+  panelDetails.innerHTML += "<h3 class=\"emphasis\">Second Time Derivative of Mean Motion</h3>"
+  panelDetails.innerHTML += "<p>This is the second time derivative of the mean motion divided by 6 (in rev/day^3).</p>"
+  panelDetails.innerHTML += "<p>This is a small number, almost all TLEs have 00000-0 in this field.</p>"
+  panelDetails.innerHTML += "<p class=\"sidenote\">ISS (ZARYA)</p>"
+  panelDetails.innerHTML += "<p class=\"sidenote\">1 25544U 98067A 20300.83097691   .00001534  <strong class=\"red\">00000-0</strong>  35580-4 0  9996</p>"
+  panelDetails.innerHTML += "<p class=\"sidenote\">2 25544 51.6453  57.0843 0001671  64.9808  73.0513 15.49338189252428</p>"
+
+  panelDetails.innerHTML += "<br>"
+  panelDetails.innerHTML += "<h3 class=\"emphasis\">BSTAR Drag Term</h3>"
+  panelDetails.innerHTML += "<p>Atmospheric drag parameter affecting orbit.</p>"
+  panelDetails.innerHTML += "<p class=\"sidenote\">ISS (ZARYA)</p>"
+  panelDetails.innerHTML += "<p class=\"sidenote\">1 25544U 98067A 20300.83097691   .00001534  00000-0 <strong class=\"red\">35580-4</strong>  0  9996</p>"
+  panelDetails.innerHTML += "<p class=\"sidenote\">2 25544 51.6453  57.0843 0001671  64.9808  73.0513 15.49338189252428</p>"
+
+  panelDetails.innerHTML += "<br>"
+  panelDetails.innerHTML += "<h3 class=\"emphasis\">Ephemeris type</h3>"
+  panelDetails.innerHTML += "<p>This number describes the ephemeris model used for the calculation of orbital elements.</p>"
+  panelDetails.innerHTML += "<p class=\"sidenote\">ISS (ZARYA)</p>"
+  panelDetails.innerHTML += "<p class=\"sidenote\">1 25544U 98067A 20300.83097691   .00001534  00000-0 35580-4  <strong class=\"red\">0</strong>  9996</p>"
+  panelDetails.innerHTML += "<p class=\"sidenote\">2 25544 51.6453  57.0843 0001671  64.9808  73.0513 15.49338189252428</p>"
+
+  panelDetails.innerHTML += "<br>"
+  panelDetails.innerHTML += "<h3 class=\"emphasis\">Element number</h3>"
+  panelDetails.innerHTML += "<p>This number is incremented by updating this information. However, it is fixed at 999.</p>"
+  panelDetails.innerHTML += "<p class=\"sidenote\">ISS (ZARYA)</p>"
+  panelDetails.innerHTML += "<p class=\"sidenote\">1 25544U 98067A 20300.83097691   .00001534  00000-0 35580-4  0  <strong class=\"red\">999</strong>6</p>"
+  panelDetails.innerHTML += "<p class=\"sidenote\">2 25544 51.6453  57.0843 0001671  64.9808  73.0513 15.49338189252428</p>"
+
+  panelDetails.innerHTML += "<br>"
+  panelDetails.innerHTML += "<h3 class=\"emphasis\">Checksum</h3>"
+  panelDetails.innerHTML += "<p>The last field of each line is the checksum for detecting data errors using modulo 10.</p>"
+  panelDetails.innerHTML += "<p class=\"sidenote\">ISS (ZARYA)</p>"
+  panelDetails.innerHTML += "<p class=\"sidenote\">1 25544U 98067A 20300.83097691   .00001534  00000-0 35580-4  0  999<strong class=\"red\">6</strong></p>"
+  panelDetails.innerHTML += "<p class=\"sidenote\">2 25544 51.6453  57.0843 0001671  64.9808  73.0513 15.4933818925242<strong class=\"red\">8</strong></p>"
+
+  panelDetails.innerHTML += "<br>"
+  panelDetails.innerHTML += "<h3 class=\"emphasis\">Inclination</h3>"
+  panelDetails.innerHTML += "<p>Orbital tilt relative to Earth's equator (in degrees).</p>"
+  panelDetails.innerHTML += "<p class=\"sidenote\">ISS (ZARYA)</p>"
+  panelDetails.innerHTML += "<p class=\"sidenote\">1 25544U 98067A 20300.83097691   .00001534  00000-0 35580-4  0  9996</p>"
+  panelDetails.innerHTML += "<p class=\"sidenote\">2 25544 <strong class=\"red\">51.6453</strong>  57.0843 0001671  64.9808  73.0513 15.49338189252428</p>"
+
+  panelDetails.innerHTML += "<br>"
+  panelDetails.innerHTML += "<h3 class=\"emphasis\">Right Ascension of the Ascending Node</h3>"
+  panelDetails.innerHTML += "<p>Longitude where the orbit crosses the equatorial plane.</p>"
+  panelDetails.innerHTML += "<p class=\"sidenote\">ISS (ZARYA)</p>"
+  panelDetails.innerHTML += "<p class=\"sidenote\">1 25544U 98067A 20300.83097691   .00001534  00000-0 35580-4  0  9996</p>"
+  panelDetails.innerHTML += "<p class=\"sidenote\">2 25544 51.6453  <strong class=\"red\">57.0843</strong> 0001671  64.9808  73.0513 15.49338189252428</p>"
+
+  panelDetails.innerHTML += "<br>"
+  panelDetails.innerHTML += "<h3 class=\"emphasis\">Eccentricity</h3>"
+  panelDetails.innerHTML += "<p>Orbit's deviation from circular (decimal point omitted).</p>"
+  panelDetails.innerHTML += "<p class=\"sidenote\">ISS (ZARYA)</p>"
+  panelDetails.innerHTML += "<p class=\"sidenote\">1 25544U 98067A 20300.83097691   .00001534  00000-0 35580-4  0  9996</p>"
+  panelDetails.innerHTML += "<p class=\"sidenote\">2 25544 51.6453  57.0843 <strong class=\"red\">0001671</strong>  64.9808  73.0513 15.49338189252428</p>"
+
+  panelDetails.innerHTML += "<br>"
+  panelDetails.innerHTML += "<h3 class=\"emphasis\">Argument of Perigee</h3>"
+  panelDetails.innerHTML += "<p>Angle to the closest orbital point (perigee).</p>"
+  panelDetails.innerHTML += "<p class=\"sidenote\">ISS (ZARYA)</p>"
+  panelDetails.innerHTML += "<p class=\"sidenote\">1 25544U 98067A 20300.83097691   .00001534  00000-0 35580-4  0  9996</p>"
+  panelDetails.innerHTML += "<p class=\"sidenote\">2 25544 51.6453  57.0843 0001671 <strong class=\"red\">64.9808</strong>  73.0513 15.49338189252428</p>"
+
+  panelDetails.innerHTML += "<br>"
+  panelDetails.innerHTML += "<h3 class=\"emphasis\">Mean Anomaly</h3>"
+  panelDetails.innerHTML += "<p>Position of the satellite in its orbit.</p>"
+  panelDetails.innerHTML += "<p class=\"sidenote\">ISS (ZARYA)</p>"
+  panelDetails.innerHTML += "<p class=\"sidenote\">1 25544U 98067A 20300.83097691   .00001534  00000-0 35580-4  0  9996</p>"
+  panelDetails.innerHTML += "<p class=\"sidenote\">2 25544 51.6453  57.0843 0001671 64.9808  <strong class=\"red\">73.0513</strong> 15.49338189252428</p>"
+
+  panelDetails.innerHTML += "<br>"
+  panelDetails.innerHTML += "<h3 class=\"emphasis\">Mean Motion</h3>"
+  panelDetails.innerHTML += "<p> Orbital speed.</p>"
+  panelDetails.innerHTML += "<p class=\"sidenote\">ISS (ZARYA)</p>"
+  panelDetails.innerHTML += "<p class=\"sidenote\">1 25544U 98067A 20300.83097691   .00001534  00000-0 35580-4  0  9996</p>"
+  panelDetails.innerHTML += "<p class=\"sidenote\">2 25544 51.6453  57.0843 0001671 64.9808  73.0513 <strong class=\"red\">15.493381892</strong>52428</p>"
+
+  panelDetails.innerHTML += "<br>"
+  panelDetails.innerHTML += "<h3 class=\"emphasis\">Revolution number at epoch</h3>"
+  panelDetails.innerHTML += "<p> Total orbits completed since launch.</p>"
+  panelDetails.innerHTML += "<p class=\"sidenote\">ISS (ZARYA)</p>"
+  panelDetails.innerHTML += "<p class=\"sidenote\">1 25544U 98067A 20300.83097691   .00001534  00000-0 35580-4  0  9996</p>"
+  panelDetails.innerHTML += "<p class=\"sidenote\">2 25544 51.6453  57.0843 0001671 64.9808  73.0513 15.49338189<strong class=\"red\">25242</strong>8</p>"
+
+  panelDetails.innerHTML += "<br>"
+  panelDetails.innerHTML += "<h3 class=\"emphasis\">Summary</h3>"
+  panelDetails.innerHTML += "<p>TLEs are managed by NORAD and published for anyone to use.</p>"
+  panelDetails.innerHTML += "<p>Learn more from these resources:</p>"
+  panelDetails.innerHTML += "<ul  style=\"padding-left: 2em;\">"
+  panelDetails.innerHTML += "<li><a class=\"emphasis blue\" href=\"https://celestrak.org/NORAD/elements/\" target=\"_blank\">CelesTrak</a></li>"
+  panelDetails.innerHTML += "<li><a class=\"emphasis blue\" href=\"https://www.space-track.org\" target=\"_blank\">Space Track</a></li>"
+  panelDetails.innerHTML += "</ul>"
+}
+
 
 const satellitePanelDisplay = (satellite) => {
   const closeBar = document.querySelector(".close-bar")
@@ -723,15 +947,50 @@ function toProperCase(str) {
 
 
 <style>
+.educationTabs {
+  position: fixed;
+  /* Sticks to the viewport */
+  bottom: 0;
+  /* Anchors it to the bottom of the screen */
+  left: 0;
+  /* Aligns to the left edge initially */
+  width: calc(100% - 300px);
+  /* Adjusts to account for the open side panel */
+  height: 75px;
+  /* Height of the tab bar */
+  display: flex;
+  /* Horizontal alignment of <h1> elements */
+  justify-content: space-evenly;
+  /* Even spacing with some adjustment */
+  align-items: center;
+  /* Vertical centering of text */
+  padding: 0 20px;
+  /* Adds padding on the left and right sides */
+  gap: 15px;
+  /* Reduces the gap between items */
+  color: white;
+  /* Text color */
+  z-index: 11;
+  /* Ensures it's above all other content */
+  transition: left 0.3s ease, width 0.3s ease;
+  /* Smooth transitions */
+}
 
-/* .custom-toast-container {
-  font-size: 200px !important;
-  background-color: var(--primary-50);
-  color: black;
-  border-radius: 0.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-} */
+.education {
+  font-family: "Gemunu Libre", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 35px;
+  text-align: center;
+  /* text-decoration: underline; */
 
+}
+
+.education:hover {
+  color: var(--interaction);
+  cursor: pointer;
+
+}
 
 .app-container {
   display: flex;
@@ -816,25 +1075,8 @@ function toProperCase(str) {
   padding: 12px;
   /* Adjust padding */
 }
-/* 
-.dropdown-menu {
-  width: 400px;
-  max-height: 0.5vh;
-  overflow-y: auto;
-}
-
-.custom-dropdown .u-dropdown-items {
-  max-height: 50vh;
-  overflow-y: auto; 
-  width: 20rem; 
-} */
 
 
-/* .dropdownItem {
-  padding: 12px 20px;
-  font-size: 22px;
-
-} */
 
 .indent {
   padding-left: 20px;
